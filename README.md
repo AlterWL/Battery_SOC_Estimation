@@ -14,6 +14,7 @@ Li-Battery model building, parameters identification and verification, SOC estim
 * The estimated SOC and update Up(voltage of RC element in Thevenin ECM) change synchronously due to the same state vector that they are in, that can be seen in the codes in MATLAB Fction block 'EKF'.
 ![States estimation curve](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/sim_curves.png)
 * Kalman flter update of states including SOC and Up, accroding to the difference betweent observed values and predicted values of UL(voltage on the load). The code format of this expression is as following.
+
 `X_upd = X_pre + K*(UL_obs-UL_pre);`
 ![UL curves](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/UL.png)
 * A runable script named 'Thevenin_EKF_SOC.m' has been uploaded for test. 
