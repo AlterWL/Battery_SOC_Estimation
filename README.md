@@ -21,7 +21,7 @@ Li-Battery model building, parameters identification and verification, SOC estim
 
 	`X_upd = X_pre + K*(UL_obs-UL_pre);`
 
-![UL curves](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/UL.png）
+![UL curves](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/UL.png)
 
 * A runable script named 'Thevenin_EKF_SOC.m' has been uploaded for test. 
 * It simulats the constant current discharge process of lithium-ion battery with observation noise and uses EKF method to estimate SOC of the battery.
