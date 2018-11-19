@@ -8,6 +8,8 @@ Li-Battery model building, parameters identification and verification, SOC estim
 
 # Content
 
+https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/simulink.png
 
+https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/sim_curves.png
 
-
+https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/UL.png
