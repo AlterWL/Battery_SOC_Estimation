@@ -2,11 +2,11 @@
 
 Simulation of SOC estimation using extended kalman filter in Matlab 
 
-# Description
+## Description
 
 Li-Battery model building, parameters identification and verification, SOC estimation using extended kalman filter in Matlab, Simulink.
 
-# Content
+## Content
 The inputs of the model include current and voltage from baattery test(HPPC) data. Thevenin equivalent circuit model and extended kalman filter are implemented to estimat SOC of a 50Ah NCM li-ion battery of China Aviation Lithium Battery Co.Ltd.
 ![Simulink block connection diagram](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/simulink.png)
 The estimated curve has distinct divergences in the current pulse areas and it converges to the true value in the constant current discharge areas. The estimated SOC and update Up(voltage of RC element in Thevenin ECM) change synchronously due to the same state vector that they are in, that can be seen in the codes in MATLAB Fction block 'EKF'.
