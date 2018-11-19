@@ -1,6 +1,9 @@
-# Hello_World
+# EKF on SOC estimation
 
-Hello Earthmen!
+Simulation of SOC estimation using extended kalman filter in Matlab 
 
-I'm setteled on this plant since I was born. It's so glad to be with you guys!
-In fact, it's a learner here speaking to you. Kindly give me your advice, please!
+# Description
+
+Li-Battery model building, parameters identification and verification, SOC estimation using extended kalman filter in Matlab, Simulink.
+
+# Content
