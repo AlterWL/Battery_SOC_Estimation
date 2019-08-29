@@ -1,27 +1,48 @@
-# EKF on SOC estimation
+# Battery State of Charge Estimation Using Kalman Filter
 
-Simulation of SOC estimation using extended kalman filter in Matlab 
+---
 
-## Description
+This small project comes from the simulation part of my college graduation design. I mainly finished the experiments, parameters identification and simulation of extended kalman filter(EKF). The completion unscented kalman filter(UKF) simulation is thanks to the contribution from my friend, Pengcheng Gu. The BBDST working condition block is also benefit from the help so my senior, Cong Jiang.
+
+## General Content
 
 Li-Battery model building, parameters identification and verification, SOC estimation using extended kalman filter in Matlab, Simulink.
 
-## Content
-* The inputs of the model include current and voltage from baattery test(HPPC) data.
-* Thevenin equivalent circuit model and extended kalman filter are implemented to estimat SOC of a 50Ah NCM li-ion battery of China Aviation Lithium Battery Co.Ltd.
+## First Try
 
-![Simulink block connection diagram](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/simulink.png)
+- The inputs of the model include current and voltage from baattery test(HPPC) data.
+- Thevenin equivalent circuit model and extended kalman filter are included in the simulation file "EKFBlocks_R2016.slx", of which the structure is shown in the snapshot below.
 
-* The estimated curve has distinct divergences in the current pulse areas and it converges to the true value in the constant current discharge areas. 
-* The estimated SOC and update Up(voltage of RC element in Thevenin ECM) change synchronously due to the same state vector that they are in, that can be seen in the codes in MATLAB Fction block 'EKF'.
+![Simulink](./imgs/simulink.png)
+<center>Structure of EKFBlocks_R2016.slx</center>
 
-![States estimation curve](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/Output%20States.png)
+- The estimated curve has distinct divergences in the current pulse areas and it converges to the true value in the constant current discharge areas. 
+- The estimated SOC and update Up(voltage of RC element in Thevenin ECM) change synchronously due to the same state vector that they are in, that can be seen in the codes in MATLAB Fction block 'EKF'.
 
-* Kalman flter update of states including SOC and Up, accroding to the difference betweent observed values and predicted values of UL(voltage on the load). The code format of this expression is as following.
+![States Output](./imgs/Output.png)
+<center>Output of EKFBlocks_R2016.slx</center>
 
-	`X_upd = X_pre + K*(UL_obs-UL_pre);`
+- Kalman flter update of states including SOC and Up, accroding to the difference betweent observed values and predicted values of UL(voltage on the load). The code format of this expression is as following.  
 
-![UL curves](https://github.com/AlterWL/EKF-on-SOC-Estimation/blob/master/UL.png)
+```matlab
+X_upd = X_pre + K*(UL_obs-UL_pre);
+```
 
-* A runable script named 'Thevenin_EKF_SOC.m' has been uploaded for test. 
-* It simulats the constant current discharge process of lithium-ion battery with observation noise and uses EKF method to estimate SOC of the battery.
+![UL curves](./imgs/UL.png)
+<center>UL Variation</center>
+
+- A runable script named 'Thevenin_EKF_SOC.m' has been uploaded for test.
+  
+- It simulats the constant current discharge process of lithium-ion battery with observation noise and uses EKF method to estimate SOC of the battery.
+
+## Improtment
+
+- After improvement, the I/O relationship between modules becomes more perspicuous.
+
+![Improvement](./imgs/ImprovedSim.jpg)
+<center>Structure of EKF_UKF_Thev.slx</center>
+
+- The curve below is result of main simulation function in "main.m", which runs the Matlab function in "EKF_UKF_Thev.m"
+
+![States estimation curve](./imgs/SimResult.jpg)
+<center>Result of codes simulation</center>
