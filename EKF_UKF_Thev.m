@@ -1,235 +1,236 @@
 %% =================================================================
-%    Function£ºTheveninÄ£ĞÍµÄ EKF SOC ¹ÀËã
-%    Input£ºSoC_upd - ³õÊ¼Ê±¿ÌµÄ¹À¼ÆÖµ£¬Ä¬ÈÏÖµÎª³õÊ¼Ê±¿ÌµÄÕæÊµÖµ
-%           Current - ¹¤¿öµçÁ÷£¬´Ó BBDST¹¤¿ö.slx Éú³É 
-%    Description: ·Ö±ğÊ¹ÓÃEKFºÍUKFÁ½ÖÖ·½Ê½¹ÀËãSOC
+%    Functionï¼šTheveninæ¨¡å‹çš„ EKF SOC ä¼°ç®—
+%    Inputï¼šSoC_upd - åˆå§‹æ—¶åˆ»çš„ä¼°è®¡å€¼ï¼Œé»˜è®¤å€¼ä¸ºåˆå§‹æ—¶åˆ»çš„çœŸå®å€¼
+%           Current - å·¥å†µç”µæµï¼Œä» BBDSTå·¥å†µ.slx ç”Ÿæˆ
+%    Description: SoC estimation process using Extented Kalman Filter
 %% =================================================================
 
-function [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF] = EKF_UKF_SoCEstimation_Thevenin(SoC_upd_init, Currents)
-% tic;  % ¼ÆËã³ÌĞòÔËĞĞÊ±¼ä£¬¿ªÊ¼
-
-%% Initialization ------------------------------------------------------------------------------------------------
-SoC_real(1,1) = 1;  % Initial real SoC value
-if nargin < 1  % Set parameter by default
-    SoC_upd_init = SoC_real(1,1);  % Update of SoC
-end
-States_real = [SoC_real(1,1);0];  % ÕæÊµÖµ³õÊ¼×´Ì¬ (SoC_real, Up_real)
-States_upd = [SoC_upd_init;0];  % ¹À¼ÆÖµ³õÊ¼×´Ì¬ (SOC_upd, Up_upd)
-SoC_AH(1,1) =SoC_upd_init;  % Initail value of AH
-SoC_upd(1,1) = States_upd(1,1);
-% I_standard = 2.5;  % Initial current
-P_Cov = [1e-8 0;0 1e-6];  % ·½²î¾ØÕó
-ts  = 1;  % ²ÉÑùÊ±¼ä
-tr = 0.1;  % ×îĞ¡Ê±¼ä¼ä¸ô£¬ÓÃÒÔÄ£ÄâÕæÊµµçÁ¿
-% N = 3600/ts;  % ²ÉÑù´ÎÊı
-N = 6000;
-Capacity = 1.5;  % µç³ØÈİÁ¿
-Qs = 4e-9;  % SoC ¹ı³ÌÔëÉù·½²î
-Qu = 1e-8;  % Up ¹ı³ÌÔëÉù·½³Ì
-R = 1e-6;  %¹Û²âÔëÉù·½²î
-I_real = Currents;
-
-%--------------ÎŞ¼£±ä»»--------------------
-global n;                %Î¬¶È
-n=1;
-alp=0.04;
-beta=2;
-kap=2;                                                    
-% lamda=alp^2*(n+kap)-n;          
-lamda=1.5;    
-%---------------È¨ÖµÈ·¶¨---------------
-Wm=[lamda/(n+lamda),0.5/(n+lamda)+zeros(1,2*n)];                               
-Wc=Wm;
-Wc(1)=Wc(1)+(1-alp^2+beta); 
-%--------------------------------------
-p=0.002;                %×´Ì¬Îó²îĞ­·½²î³õÖµ      
-xc(:,1)=SoC_upd_init;  %xc(),ÏµÍ³Ô¤²â¸üĞÂºóµÄ×´Ì¬Öµ 
-
-Err_EKF(1,1) = SoC_real(1,1)-States_upd(1,1);  % Error between real values and estimated values
-Err_AH(1,1) = SoC_real(1,1)-SoC_AH(1,1); 
-Err_UKF(1,1) = SoC_real(1,1)-xc(1,1);
-
-% Rp = 0.01513;
-% Cp = 47718.90713;
-% tao = Rp * Cp;
-% I_real=zeros(1,N);  % Êµ¼ÊµçÁ÷³õÊ¼»¯
-
-for T=2:N
-    %% Simulation of real state---------------------------
-    for t=(T-1)*ts/tr-(ts/tr-2) : (T-1)*ts/tr+1
-        Rp = 0.02346-0.10537*SoC_real(1,t-1)^1+1.1371*SoC_real(1,t-1)^2-4.55188*SoC_real(1,t-1)^3+8.26827*SoC_real(1,t-1)^4-6.93032*SoC_real(1,t-1)^5 +2.1787*SoC_real(1,t-1)^6;
-        Cp = 203.1404+3522.78847*SoC_real(1,t-1)-31392.66753*SoC_real(1,t-1)^2+122406.91269*SoC_real(1,t-1)^3-227590.94382*SoC_real(1,t-1)^4+198281.56406*SoC_real(1,t-1)^5 -65171.90395*SoC_real(1,t-1)^6;
-        tao = Rp * Cp;
+function [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF] = EKF_UKF_Thev(SoC_upd_init, Currents)
+    % tic;  % è®¡ç®—ç¨‹åºè¿è¡Œæ—¶é—´ï¼Œå¼€å§‹
+    
+    %% Initialization ------------------------------------------------------------------------------------------------
+    SoC_real(1,1) = 1;  % Initial real SoC value
+    if nargin < 1  % Set parameter by default
+        SoC_upd_init = SoC_real(1,1);  % Update of SoC
+    end
+    States_real = [SoC_real(1,1);0];  % çœŸå®å€¼åˆå§‹çŠ¶æ€ (SoC_real, Up_real)
+    States_upd = [SoC_upd_init;0];  % ä¼°è®¡å€¼åˆå§‹çŠ¶æ€ (SOC_upd, Up_upd)
+    SoC_AH(1,1) =SoC_upd_init;  % Initail value of AH
+    SoC_upd(1,1) = States_upd(1,1);
+    % I_standard = 2.5;  % Initial current
+    P_Cov = [1e-8 0;0 1e-6];  % æ–¹å·®çŸ©é˜µ
+    ts  = 1;  % é‡‡æ ·æ—¶é—´
+    tr = 0.1;  % æœ€å°æ—¶é—´é—´éš”ï¼Œç”¨ä»¥æ¨¡æ‹ŸçœŸå®ç”µé‡
+    % N = 3600/ts;  % é‡‡æ ·æ¬¡æ•°
+    N = 6000;
+    Capacity = 1.5;  % ç”µæ± å®¹é‡
+    Qs = 4e-9;  % SoC è¿‡ç¨‹å™ªå£°æ–¹å·®
+    Qu = 1e-8;  % Up è¿‡ç¨‹å™ªå£°æ–¹ç¨‹
+    R = 1e-6;  %è§‚æµ‹å™ªå£°æ–¹å·®
+    I_real = Currents;
+    
+    %--------------æ— è¿¹å˜æ¢--------------------
+    global n;                %ç»´åº¦
+    n=1;
+    alp=0.04;
+    beta=2;
+    kap=2;                                                    
+    % lamda=alp^2*(n+kap)-n;          
+    lamda=1.5;    
+    %---------------æƒå€¼ç¡®å®š---------------
+    Wm=[lamda/(n+lamda),0.5/(n+lamda)+zeros(1,2*n)];                               
+    Wc=Wm;
+    Wc(1)=Wc(1)+(1-alp^2+beta); 
+    %--------------------------------------
+    p=0.002;                %çŠ¶æ€è¯¯å·®åæ–¹å·®åˆå€¼      
+    xc(:,1)=SoC_upd_init;  %xc(),ç³»ç»Ÿé¢„æµ‹æ›´æ–°åçš„çŠ¶æ€å€¼ 
+    
+    Err_EKF(1,1) = SoC_real(1,1)-States_upd(1,1);  % Error between real values and estimated values
+    Err_AH(1,1) = SoC_real(1,1)-SoC_AH(1,1); 
+    Err_UKF(1,1) = SoC_real(1,1)-xc(1,1);
+    
+    % Rp = 0.01513;
+    % Cp = 47718.90713;
+    % tao = Rp * Cp;
+    % I_real=zeros(1,N);  % å®é™…ç”µæµåˆå§‹åŒ–
+    
+    for T=2:N
+        %% Simulation of real state---------------------------
+        for t=(T-1)*ts/tr-(ts/tr-2) : (T-1)*ts/tr+1
+            Rp = 0.02346-0.10537*SoC_real(1,t-1)^1+1.1371*SoC_real(1,t-1)^2-4.55188*SoC_real(1,t-1)^3+8.26827*SoC_real(1,t-1)^4-6.93032*SoC_real(1,t-1)^5 +2.1787*SoC_real(1,t-1)^6;
+            Cp = 203.1404+3522.78847*SoC_real(1,t-1)-31392.66753*SoC_real(1,t-1)^2+122406.91269*SoC_real(1,t-1)^3-227590.94382*SoC_real(1,t-1)^4+198281.56406*SoC_real(1,t-1)^5 -65171.90395*SoC_real(1,t-1)^6;
+            tao = Rp * Cp;
+            
+            A2=exp(-tr/tao);
+            A=[1 0;0 A2];  % State transformation matrix
+            B1 = -tr/(Capacity*3600);
+            B2=Rp*(1-exp(-tr/tao));
+            B=[B1;B2];  % Input control matrix
+            
+            States_real(:,t) = A*States_real(:,t-1) + B*I_real(1,t) + [sqrt(Qs)*randn;sqrt(Qu)*randn];  % å®é™…è¿‡ç¨‹æ¨¡æ‹Ÿä»¥ 0.5s æ›´æ–°ä¸€æ¬¡
+            SoC_real(1,t) = States_real(1,t);
+        end
+        UOC_real = 3.44003+1.71448*States_real(1,t) -3.51247*States_real(1,t)^2 +5.70868*States_real(1,t)^3 -5.06869*States_real(1,t)^4 +1.86699*States_real(1,t)^5;
+        Rint_real = 0.04916 +1.19552*States_real(1,t)-6.25333*States_real(1,t)^2+14.24181*States_real(1,t)^3-13.93388*States_real(1,t)^4+2.553*States_real(1,t)^5+4.16285*States_real(1,t)^6-1.8713*States_real(1,t)^7;
+        UL_ob = UOC_real - States_real(2,t) - I_real(:,t) * Rint_real  + sqrt(R)*randn;  % æ¨¡æ‹Ÿå®é™…ç”µå‹
+        ul2 = UOC_real - I_real(:,t) * Rint_real-  I_real(:,t)*Rp*(1-exp(-ts/(Rp*Cp))) + sqrt(R)*randn;
         
-        A2=exp(-tr/tao);
+        % æ¨¡æ‹Ÿç”µæµæµ‹é‡å€¼ï¼Œå®é™…æµ‹é‡å­˜åœ¨è¯¯å·®ï¼Œè¯¯å·®è¿‡å¤§å¡å°”æ›¼æ•ˆæœä¹Ÿä¸å¥½ï¼Œç”šè‡³ä½äºå®‰æ—¶ç§¯åˆ†çš„æ•ˆæœ
+        % I_est = I_real(T) + abs((0.05*Capacity)*randn);
+        % å¦‚æœæµ‹é‡å€¼ä¸€ç›´ä¸å®é™…å€¼å­˜åœ¨æ­£(è´Ÿ)åå·®ï¼Œå®‰æ—¶ç§¯åˆ†å­˜åœ¨è¯¯å·®ç´¯è®¡ï¼Œè€Œå¡å°”æ›¼æ»¤æ³¢æ”¶çš„çš„å½±å“è¿œè¿œä½äºå®‰æ—¶ç§¯åˆ†
+        % I_est = I_real(T) + abs((0.05*Capacity)*randn);
+        I_est = I_real(t) + (0.01*Capacity)*randn;
+        SoC_AH(1,T) = SoC_AH(1,T-1) - ts/(Capacity*3600)*I_est;
+        %% EKF process ----------------------------------------
+        % ------------- é¢„ æµ‹ ----------------
+        Rp = 0.02346-0.10537*SoC_upd(1,T-1)^1+1.1371*SoC_upd(1,T-1)^2-4.55188*SoC_upd(1,T-1)^3+8.26827*SoC_upd(1,T-1)^4-6.93032*SoC_upd(1,T-1)^5 +2.1787*SoC_upd(1,T-1)^6;
+        Cp = 203.1404+3522.78847*SoC_upd(1,T-1)-31392.66753*SoC_upd(1,T-1)^2+122406.91269*SoC_upd(1,T-1)^3-227590.94382*SoC_upd(1,T-1)^4+198281.56406*SoC_upd(1,T-1)^5 -65171.90395*SoC_upd(1,T-1)^6;
+        A2=exp(-ts/Rp/Cp);
         A=[1 0;0 A2];  % State transformation matrix
-        B1 = -tr/(Capacity*3600);
-        B2=Rp*(1-exp(-tr/tao));
+        B1 = -ts/(Capacity*3600);
+        B2=Rp*(1-exp(-ts/Rp/Cp));
         B=[B1;B2];  % Input control matrix
+        States_pre = A*States_upd(:,T-1) + B*I_est;  % ç”±ä¸Šä¸€æ—¶åˆ»çŠ¶æ€é‡é¢„æµ‹è¯¥æ—¶åˆ»çŠ¶æ€é‡ï¼ŒåŒ…æ‹¬SoC,æåŒ–ç”µå‹å€¼
+        P_Cov = A*P_Cov*A' + [Qs 0;0 Qu];  % æ–¹å·®
+        UOC_pre = 3.44003+1.71448*States_pre(1,1) -3.51247*States_pre(1,1)^2 +5.70868*States_pre(1,1)^3 -5.06869*States_pre(1,1)^4 +1.86699*States_pre(1,1)^5;
+        Rint_pre = 0.04916 +1.19552*States_pre(1,1)-6.25333*States_pre(1,1)^2+14.24181*States_pre(1,1)^3-13.93388*States_pre(1,1)^4+2.553*States_pre(1,1)^5+4.16285*States_pre(1,1)^6-1.8713*States_pre(1,1)^7;
+        UL_pre = UOC_pre - States_pre(2,1)- I_est * Rint_pre;  % subs(Rint,SoC_upd(1,t-1));  % é¢„æµ‹ç”µå‹
+        % -------------- æ›´ æ–° --------------
+        C1 = 1.71448 -2*3.51247*SoC_upd(1,T-1) +3*5.70868*SoC_upd(1,T-1)^2 -4*5.06869*SoC_upd(1,T-1)^3 +5*1.86699*SoC_upd(1,T-1)^4;
+        C = [C1 -1];
+        K = P_Cov*C'* (C*P_Cov*C'+R)^(-1);  % å¢ç›Š
+        States_upd(:,T) = States_pre + K * (UL_ob - UL_pre);  % å¾—åˆ°ä¼°è®¡å€¼
+        P_Cov = P_Cov - K * C * P_Cov;
+        SoC_upd(1,T) = States_upd(1,T);
         
-        States_real(:,t) = A*States_real(:,t-1) + B*I_real(1,t) + [sqrt(Qs)*randn;sqrt(Qu)*randn];  % Êµ¼Ê¹ı³ÌÄ£ÄâÒÔ 0.5s ¸üĞÂÒ»´Î
-        SoC_real(1,t) = States_real(1,t);
-    end
-    UOC_real = 3.44003+1.71448*States_real(1,t) -3.51247*States_real(1,t)^2 +5.70868*States_real(1,t)^3 -5.06869*States_real(1,t)^4 +1.86699*States_real(1,t)^5;
-	Rint_real = 0.04916 +1.19552*States_real(1,t)-6.25333*States_real(1,t)^2+14.24181*States_real(1,t)^3-13.93388*States_real(1,t)^4+2.553*States_real(1,t)^5+4.16285*States_real(1,t)^6-1.8713*States_real(1,t)^7;
-    UL_ob = UOC_real - States_real(2,t) - I_real(:,t) * Rint_real  + sqrt(R)*randn;  % Ä£ÄâÊµ¼ÊµçÑ¹
-    ul2 = UOC_real - I_real(:,t) * Rint_real-  I_real(:,t)*Rp*(1-exp(-ts/(Rp*Cp))) + sqrt(R)*randn;
+        %% UKF process ---------------------------------------- 
+        Xsigma=xc(T-1);
+        pk=sqrt((n+lamda)*p);
+        %---------------ç¡®å®šsigmaé‡‡æ ·ç‚¹------------
+        for k=1:n
+           sigma1(k)=Xsigma+pk;
+           sigma2(k)=Xsigma-pk;
+        end
+        sigma=[Xsigma sigma1 sigma2];
+        %-------------ç³»ç»ŸçŠ¶æ€é¢„æµ‹æ–¹ç¨‹----------------
+        sxk=0;     %çŠ¶æ€é‡å‡å€¼
+        for ks=1:2*n+1
+            sigma(ks)=sigma(ks)-I_est*ts/(Capacity*3600);
+            sxk=Wm(ks)*sigma(ks)+sxk;         
+        end
+        spk=0;     %å…³äºçŠ¶æ€é‡çš„åæ–¹å·®çŸ©é˜µé¢„æµ‹
+        for kp=1:2*n+1
+            spk=Wc(kp)*(sigma(kp)-sxk)*(sigma(kp)-sxk)'+spk;  % å®Œæˆåæ–¹å·®çŸ©é˜µçš„é¢„æµ‹  
+        end
+        spk=spk+Qs;
+        %------ä¸€æ¬¡æ›´æ–°sigmaé‡‡æ ·ç‚¹ä¸ºResigma--------
+        pkr=sqrt((n+lamda)*spk);  
+        for k=1:n
+           Resigma1(k)=sxk+pkr;
+           Resigma2(k)=sxk-pkr;
+        end
+        Resigma=[sxk Resigma1 Resigma2];
+        %--------------è§‚æµ‹æ–¹ç¨‹--------------
+        for kg=1:2*n+1
+            Uoc1 = 3.44003+1.71448*Resigma(kg) -3.51247*Resigma(kg)^2 +5.70868*Resigma(kg)^3 -5.06869*Resigma(kg)^4 +1.86699*Resigma(kg)^5;
+            Rint_pre = 0.04916 +1.19552*Resigma(kg)-6.25333*Resigma(kg)^2+14.24181*Resigma(kg)^3-13.93388*Resigma(kg)^4+2.553*Resigma(kg)^5+4.16285*Resigma(kg)^6-1.8713*Resigma(kg)^7;
+            Rp = 0.02346-0.10537*Resigma(kg)^1+1.1371*Resigma(kg)^2-4.55188*Resigma(kg)^3+8.26827*Resigma(kg)^4-6.93032*Resigma(kg)^5 +2.1787*Resigma(kg)^6;
+            Cp = 203.1404+3522.78847*Resigma(kg)-31392.66753*Resigma(kg)^2+122406.91269*Resigma(kg)^3-227590.94382*Resigma(kg)^4+198281.56406*Resigma(kg)^5 -65171.90395*Resigma(kg)^6;
+            gamma(kg)=Uoc1-I_est*Rint_pre-I_est*Rp*(1-exp(-ts/(Rp*Cp)));      %è§‚æµ‹ä¸€æ­¥é¢„æµ‹
+        end
+        syk=0;     %æµ‹é‡é‡å‡å€¼
+        for ky=1:2*n+1
+            syk=syk+Wm(ky)*gamma(ky);     %å‡å€¼
+        end
+        pyy=0;     %å…³äºæµ‹é‡å€¼è¯¯å·®æ–¹å·®çŸ©é˜µ        
+        for kpy=1:2*n+1
+            pyy=Wc(kpy)*(gamma(kpy)-syk)*(gamma(kpy)-syk)'+pyy;     %è¯¯å·®åæ–¹å·®
+        end
+        pyy=pyy+R;
+        %--------------è¯¯å·®åæ–¹å·®--------------
+        pxy=0;     %è¯¯å·®åæ–¹å·®çŸ©é˜µ
+        for kxy=1:2*n+1
+            pxy=Wc(kxy)*(Resigma(kxy)-sxk)*(gamma(kxy)-syk)'+pxy;  % æè¿°çŠ¶æ€å˜é‡ä¸æµ‹é‡å˜é‡ä¹‹é—´çš„â€œå…³ç³»â€
+        end
+        %------------ä¿®æ­£ç³»æ•°å³å¡å°”æ›¼å¢ç›Š-------
+        %---------------------------------------
+        kgs=pxy/pyy; 
+        %------------ç³»ç»ŸçŠ¶æ€å’Œè¯¯å·®åæ–¹å·®é˜µæ›´æ–°--
+        xc(T)=sxk+kgs*(ul2-syk);    %ç³»ç»ŸçŠ¶æ€ï¼Œé€šè¿‡è§‚æµ‹å€¼æ¥ä¸æ–­çš„ä¿®æ­£é¢„æµ‹å€¼
+        p=spk-kgs*pyy*kgs';          %çŠ¶æ€è¯¯å·®åæ–¹å·®æ›´æ–°
+        
+        %% Error -------------------------------------------------
+        Err_EKF(1,T) = SoC_real(1,t) - SoC_upd(1,T);  % Error of EKF
+        Err_UKF(1,T)=SoC_real(1,t)-xc(T);      %æ»¤æ³¢å¤„ç†åçš„è¯¯å·®
+        Err_AH(1,T) = SoC_real(1,t) - SoC_AH(1,T);  % Error of AH
+    end 
+        
+    mean_err_EKF = mean(Err_EKF);  % EKF è¯¯å·®å¹³å‡å€¼
+    standard_err_EKF = std(Err_EKF,0);  % EKF è¯¯å·®æ ‡å‡†å·®
+    mean_err_UKF = mean(Err_UKF);  % EKF è¯¯å·®å¹³å‡å€¼
+    standard_err_UKF = std(Err_UKF,0);  % EKF è¯¯å·®æ ‡å‡†å·®
     
-    % Ä£ÄâµçÁ÷²âÁ¿Öµ£¬Êµ¼Ê²âÁ¿´æÔÚÎó²î£¬Îó²î¹ı´ó¿¨¶ûÂüĞ§¹ûÒ²²»ºÃ£¬ÉõÖÁµÍÓÚ°²Ê±»ı·ÖµÄĞ§¹û
-    % I_est = I_real(T) + abs((0.05*Capacity)*randn);
-    % Èç¹û²âÁ¿ÖµÒ»Ö±ÓëÊµ¼ÊÖµ´æÔÚÕı(¸º)Æ«²î£¬°²Ê±»ı·Ö´æÔÚÎó²îÀÛ¼Æ£¬¶ø¿¨¶ûÂüÂË²¨ÊÕµÄµÄÓ°ÏìÔ¶Ô¶µÍÓÚ°²Ê±»ı·Ö
-    % I_est = I_real(T) + abs((0.05*Capacity)*randn);
-    I_est = I_real(t) + (0.01*Capacity)*randn;
-    SoC_AH(1,T) = SoC_AH(1,T-1) - ts/(Capacity*3600)*I_est;
-    %% EKF process ----------------------------------------
-    % ------------- Ô¤ ²â ----------------
-    Rp = 0.02346-0.10537*SoC_upd(1,T-1)^1+1.1371*SoC_upd(1,T-1)^2-4.55188*SoC_upd(1,T-1)^3+8.26827*SoC_upd(1,T-1)^4-6.93032*SoC_upd(1,T-1)^5 +2.1787*SoC_upd(1,T-1)^6;
-    Cp = 203.1404+3522.78847*SoC_upd(1,T-1)-31392.66753*SoC_upd(1,T-1)^2+122406.91269*SoC_upd(1,T-1)^3-227590.94382*SoC_upd(1,T-1)^4+198281.56406*SoC_upd(1,T-1)^5 -65171.90395*SoC_upd(1,T-1)^6;
-    A2=exp(-ts/Rp/Cp);
-    A=[1 0;0 A2];  % State transformation matrix
-    B1 = -ts/(Capacity*3600);
-    B2=Rp*(1-exp(-ts/Rp/Cp));
-    B=[B1;B2];  % Input control matrix
-    States_pre = A*States_upd(:,T-1) + B*I_est;  % ÓÉÉÏÒ»Ê±¿Ì×´Ì¬Á¿Ô¤²â¸ÃÊ±¿Ì×´Ì¬Á¿£¬°üÀ¨SoC,¼«»¯µçÑ¹Öµ
-    P_Cov = A*P_Cov*A' + [Qs 0;0 Qu];  % ·½²î
-    UOC_pre = 3.44003+1.71448*States_pre(1,1) -3.51247*States_pre(1,1)^2 +5.70868*States_pre(1,1)^3 -5.06869*States_pre(1,1)^4 +1.86699*States_pre(1,1)^5;
-    Rint_pre = 0.04916 +1.19552*States_pre(1,1)-6.25333*States_pre(1,1)^2+14.24181*States_pre(1,1)^3-13.93388*States_pre(1,1)^4+2.553*States_pre(1,1)^5+4.16285*States_pre(1,1)^6-1.8713*States_pre(1,1)^7;
-    UL_pre = UOC_pre - States_pre(2,1)- I_est * Rint_pre;  % subs(Rint,SoC_upd(1,t-1));  % Ô¤²âµçÑ¹
-    % -------------- ¸ü ĞÂ --------------
-    C1 = 1.71448 -2*3.51247*SoC_upd(1,T-1) +3*5.70868*SoC_upd(1,T-1)^2 -4*5.06869*SoC_upd(1,T-1)^3 +5*1.86699*SoC_upd(1,T-1)^4;
-    C = [C1 -1];
-    K = P_Cov*C'* (C*P_Cov*C'+R)^(-1);  % ÔöÒæ
-    States_upd(:,T) = States_pre + K * (UL_ob - UL_pre);  % µÃµ½¹À¼ÆÖµ
-    P_Cov = P_Cov - K * C * P_Cov;
-    SoC_upd(1,T) = States_upd(1,T);
+    %% Draw Points ------------------------------------------------------------------------------------------------
+    %% ä¸¤åˆ—æ˜¾ç¤º
+    % T = 1:N;
+    % figure;
+    % subplot(2,1,1);
+    % plot(T,SoC_real(1,1:(ts/tr):(N*ts/tr-1)),'LineWidth',2); 
+    % hold on;
+    % plot(T,SoC_upd(1,1:N),'.g');
+    % grid on;
+    % xlabel('t(s)');
+    % ylabel('SOC');
+    % legend('SoC_{Real}','SoC_{SVM-UKF}');
+    % subplot(2,1,2);
+    % plot(T,Err_EKF(1,1:N),'-g');
+    % grid on;
+    % xlabel(' t(s)');
+    % ylabel('error');
+    % legend('Err_{SVM-UKF}','Location','NorthWest');
     
-    %% UKF process ---------------------------------------- 
-    Xsigma=xc(T-1);
-    pk=sqrt((n+lamda)*p);
-    %---------------È·¶¨sigma²ÉÑùµã------------
-    for k=1:n
-       sigma1(k)=Xsigma+pk;
-       sigma2(k)=Xsigma-pk;
-    end
-    sigma=[Xsigma sigma1 sigma2];
-    %-------------ÏµÍ³×´Ì¬Ô¤²â·½³Ì----------------
-    sxk=0;     %×´Ì¬Á¿¾ùÖµ
-    for ks=1:2*n+1
-        sigma(ks)=sigma(ks)-I_est*ts/(Capacity*3600);
-        sxk=Wm(ks)*sigma(ks)+sxk;         
-    end
-    spk=0;     %¹ØÓÚ×´Ì¬Á¿µÄĞ­·½²î¾ØÕóÔ¤²â
-    for kp=1:2*n+1
-        spk=Wc(kp)*(sigma(kp)-sxk)*(sigma(kp)-sxk)'+spk;  % Íê³ÉĞ­·½²î¾ØÕóµÄÔ¤²â  
-    end
-    spk=spk+Qs;
-    %------Ò»´Î¸üĞÂsigma²ÉÑùµãÎªResigma--------
-    pkr=sqrt((n+lamda)*spk);  
-    for k=1:n
-       Resigma1(k)=sxk+pkr;
-       Resigma2(k)=sxk-pkr;
-    end
-    Resigma=[sxk Resigma1 Resigma2];
-    %--------------¹Û²â·½³Ì--------------
-    for kg=1:2*n+1
-        Uoc1 = 3.44003+1.71448*Resigma(kg) -3.51247*Resigma(kg)^2 +5.70868*Resigma(kg)^3 -5.06869*Resigma(kg)^4 +1.86699*Resigma(kg)^5;
-        Rint_pre = 0.04916 +1.19552*Resigma(kg)-6.25333*Resigma(kg)^2+14.24181*Resigma(kg)^3-13.93388*Resigma(kg)^4+2.553*Resigma(kg)^5+4.16285*Resigma(kg)^6-1.8713*Resigma(kg)^7;
-        Rp = 0.02346-0.10537*Resigma(kg)^1+1.1371*Resigma(kg)^2-4.55188*Resigma(kg)^3+8.26827*Resigma(kg)^4-6.93032*Resigma(kg)^5 +2.1787*Resigma(kg)^6;
-        Cp = 203.1404+3522.78847*Resigma(kg)-31392.66753*Resigma(kg)^2+122406.91269*Resigma(kg)^3-227590.94382*Resigma(kg)^4+198281.56406*Resigma(kg)^5 -65171.90395*Resigma(kg)^6;
-        gamma(kg)=Uoc1-I_est*Rint_pre-I_est*Rp*(1-exp(-ts/(Rp*Cp)));      %¹Û²âÒ»²½Ô¤²â
-    end
-    syk=0;     %²âÁ¿Á¿¾ùÖµ
-    for ky=1:2*n+1
-        syk=syk+Wm(ky)*gamma(ky);     %¾ùÖµ
-    end
-    pyy=0;     %¹ØÓÚ²âÁ¿ÖµÎó²î·½²î¾ØÕó        
-    for kpy=1:2*n+1
-        pyy=Wc(kpy)*(gamma(kpy)-syk)*(gamma(kpy)-syk)'+pyy;     %Îó²îĞ­·½²î
-    end
-    pyy=pyy+R;
-    %--------------Îó²îĞ­·½²î--------------
-    pxy=0;     %Îó²îĞ­·½²î¾ØÕó
-    for kxy=1:2*n+1
-        pxy=Wc(kxy)*(Resigma(kxy)-sxk)*(gamma(kxy)-syk)'+pxy;  % ÃèÊö×´Ì¬±äÁ¿Óë²âÁ¿±äÁ¿Ö®¼äµÄ¡°¹ØÏµ¡±
-    end
-    %------------ĞŞÕıÏµÊı¼´¿¨¶ûÂüÔöÒæ-------
-    %---------------------------------------
-    kgs=pxy/pyy; 
-    %------------ÏµÍ³×´Ì¬ºÍÎó²îĞ­·½²îÕó¸üĞÂ--
-    xc(T)=sxk+kgs*(ul2-syk);    %ÏµÍ³×´Ì¬£¬Í¨¹ı¹Û²âÖµÀ´²»¶ÏµÄĞŞÕıÔ¤²âÖµ
-    p=spk-kgs*pyy*kgs';          %×´Ì¬Îó²îĞ­·½²î¸üĞÂ
+    %% ä¸¤è¡Œæ˜¾ç¤º
+    T = 1:N;
+    figure;
+    subplot(2,1,1);
+    plot(T,SoC_real(1,1:(ts/tr):(N*ts/tr-1)),'LineWidth',2);
+    hold on;
+    plot(T,SoC_AH(1,1:N),'-.m',T,SoC_upd(1,1:N),'-.g');
+    plot(T,xc(1:N),'-.','Color',[1 0.5 0]);
+    grid on;
+    xlabel('t(s)');
+    ylabel('SOC');
+    legend('SoC_{Real}','SoC_{AH}','SoC_{EKF}','SoC_{UKF}');
+    subplot(2,1,2);
+    plot(T,Err_AH(1,1:N),'-r',T,Err_EKF(1,1:N),'-.g');
+    hold on;
+    plot(T,Err_UKF(1,1:N),'-.','Color',[1 0.5 0]);
+    grid on;
+    xlabel(' t(s)');
+    ylabel('error');
+    legend('Err_{AH}','Err_{EKF}','Err_{UKF}','Location','Best');
     
-    %% Error -------------------------------------------------
-    Err_EKF(1,T) = SoC_real(1,t) - SoC_upd(1,T);  % Error of EKF
-    Err_UKF(1,T)=SoC_real(1,t)-xc(T);      %ÂË²¨´¦ÀíºóµÄÎó²î
-    Err_AH(1,T) = SoC_real(1,t) - SoC_AH(1,T);  % Error of AH
-end 
+    %% UKFçš„æ•ˆæœ
+    % T = 1:N;
+    % figure;
+    % subplot(2,1,1);
+    % plot(T,SoC_real(1,1:(ts/tr):(N*ts/tr-1)),'LineWidth',2);
+    % hold on;
+    % plot(T,SoC_AH(1,1:N),'-.','Color',[1 0.5 0]);
+    % plot(T,xc(1:N),':.','Color',[1 0 1]);
+    % grid on;
+    % xlabel('t(s)');
+    % ylabel('SOC');
+    % legend('SoC_{Real}','SoC_{AH}','SoC_{UKF}','Location','Best');
+    % subplot(2,1,2);
+    % plot(T,Err_AH(1,1:N),'-','Color',[1 0.5 0]);
+    % hold on;
+    % plot(T,Err_UKF(1,1:N),':.','Color',[1 0 1]);
+    % grid on;
+    % xlabel(' t(s)');
+    % ylabel('error');
+    % legend('Err_{AH}','Err_{UKF}','Location','Best');
     
-mean_err_EKF = mean(Err_EKF);  % EKF Îó²îÆ½¾ùÖµ
-standard_err_EKF = std(Err_EKF,0);  % EKF Îó²î±ê×¼²î
-mean_err_UKF = mean(Err_UKF);  % EKF Îó²îÆ½¾ùÖµ
-standard_err_UKF = std(Err_UKF,0);  % EKF Îó²î±ê×¼²î
-
-%% Draw Points ------------------------------------------------------------------------------------------------
-%% Á½ÁĞÏÔÊ¾
-% T = 1:N;
-% figure;
-% subplot(2,1,1);
-% plot(T,SoC_real(1,1:(ts/tr):(N*ts/tr-1)),'LineWidth',2); 
-% hold on;
-% plot(T,SoC_upd(1,1:N),'.g');
-% grid on;
-% xlabel('t(s)');
-% ylabel('SOC');
-% legend('SoC_{Real}','SoC_{SVM-UKF}');
-% subplot(2,1,2);
-% plot(T,Err_EKF(1,1:N),'-g');
-% grid on;
-% xlabel(' t(s)');
-% ylabel('error');
-% legend('Err_{SVM-UKF}','Location','NorthWest');
-
-%% Á½ĞĞÏÔÊ¾
-T = 1:N;
-figure;
-subplot(2,1,1);
-plot(T,SoC_real(1,1:(ts/tr):(N*ts/tr-1)),'LineWidth',2);
-hold on;
-plot(T,SoC_AH(1,1:N),'-.m',T,SoC_upd(1,1:N),'-.g');
-plot(T,xc(1:N),'-.','Color',[1 0.5 0]);
-grid on;
-xlabel('t(s)');
-ylabel('SOC');
-legend('SoC_{Real}','SoC_{AH}','SoC_{EKF}','SoC_{UKF}');
-subplot(2,1,2);
-plot(T,Err_AH(1,1:N),'-r',T,Err_EKF(1,1:N),'-.g');
-hold on;
-plot(T,Err_UKF(1,1:N),'-.','Color',[1 0.5 0]);
-grid on;
-xlabel(' t(s)');
-ylabel('error');
-legend('Err_{AH}','Err_{EKF}','Err_{UKF}','Location','Best');
-
-%% UKFµÄĞ§¹û
-% T = 1:N;
-% figure;
-% subplot(2,1,1);
-% plot(T,SoC_real(1,1:(ts/tr):(N*ts/tr-1)),'LineWidth',2);
-% hold on;
-% plot(T,SoC_AH(1,1:N),'-.','Color',[1 0.5 0]);
-% plot(T,xc(1:N),':.','Color',[1 0 1]);
-% grid on;
-% xlabel('t(s)');
-% ylabel('SOC');
-% legend('SoC_{Real}','SoC_{AH}','SoC_{UKF}','Location','Best');
-% subplot(2,1,2);
-% plot(T,Err_AH(1,1:N),'-','Color',[1 0.5 0]);
-% hold on;
-% plot(T,Err_UKF(1,1:N),':.','Color',[1 0 1]);
-% grid on;
-% xlabel(' t(s)');
-% ylabel('error');
-% legend('Err_{AH}','Err_{UKF}','Location','Best');
-
-% toc;  % ¼ÆËã³ÌĞòÔËĞĞÊ±¼ä£¬½áÊø
-
+    % toc;  % è®¡ç®—ç¨‹åºè¿è¡Œæ—¶é—´ï¼Œç»“æŸ
+    
+    

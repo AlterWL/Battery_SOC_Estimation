@@ -1,11 +1,9 @@
 %% ----------------------------
 % Input: SOC_est_init: The initail value of estimated SOC
-%           Work_modes: Mode of working condition 1 --> BBDST, 2 --> constant current 
-% Date: 2019.5.12
-% Author: Wanglu
+%        Work_modes: Mode of working condition 1 --> BBDST, 2 --> constant current
 %% ----------------------------
 function main(SOC_est_init, Work_modes)
-    tic;  % ¼ÆËã³ÌĞòÔËĞĞÊ±¼ä£¬¿ªÊ¼
+    tic;  % è®¡ç®—ç¨‹åºè¿è¡Œæ—¶é—´ï¼Œå¼€å§‹
     if Work_modes == 1
         sim BBDST_workingcondition;
         I = -(current.data)'*1.5/50;
@@ -15,17 +13,16 @@ function main(SOC_est_init, Work_modes)
         I(ceil(N/4):ceil(N/3)) = 0;
         I(ceil(N*2/3):ceil(N*3/4)) = 0;
     else
-        disp("ÊäÈë²ÎÊı´íÎó£¡");
+        disp("è¾“å…¥å‚æ•°é”™è¯¯ï¼");
         disp("SOC_est_init : The initail value of estimated SOC");
         disp("Work_modes: Mode of working condition");
         disp("                       1 --> BBDST, 2 --> constant current ");
         return;
     end
-% EKF_SoCEstimation_Thevenin(SOC_est_init, I);
-    [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF]=EKF_UKF_SoCEstimation_Thevenin(SOC_est_init, I);
+    [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF]=EKF_UKF_Thev(SOC_est_init, I);
     fprintf("mean_err_EKF --> %f\n", mean_err_EKF);
     fprintf("standard_err_EKF --> %f\n", standard_err_EKF);
     fprintf("mean_err_UKF --> %f\n", mean_err_UKF);
     fprintf("standard_err_UKF --> %f\n", standard_err_UKF);
-    toc;  % ¼ÆËã³ÌĞòÔËĞĞÊ±¼ä£¬½áÊø
+    toc;  % è®¡ç®—ç¨‹åºè¿è¡Œæ—¶é—´ï¼Œç»“æŸ
 end
