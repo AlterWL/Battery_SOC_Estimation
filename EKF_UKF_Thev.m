@@ -10,9 +10,6 @@ function [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF] = EKF_UKF
     
     %% Initialization ------------------------------------------------------------------------------------------------
     SoC_real(1,1) = 1;  % Initial real SoC value
-    if nargin < 1  % Set parameter by default
-        SoC_upd_init = SoC_real(1,1);  % Update of SoC
-    end
     States_real = [SoC_real(1,1);0];  % 真实值初始状态 (SoC_real, Up_real)
     States_upd = [SoC_upd_init;0];  % 估计值初始状态 (SOC_upd, Up_upd)
     SoC_AH(1,1) =SoC_upd_init;  % Initail value of AH
