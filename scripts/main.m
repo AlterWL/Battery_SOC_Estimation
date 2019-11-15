@@ -1,12 +1,12 @@
 %% ----------------------------
-% Input: SOC_est_init: The initial value of estimated SOC
-%        Work_mode: Mode of working condition 1 --> BBDST, 2 --> constant current
+% Input: Work_mode: Mode of working condition 1 --> BBDST, 2 --> constant current
+%                   SOC_est_init: The initial value of estimated SOC      
 %% ----------------------------
-function main(SOC_est_init, Work_mode)
-    tic;  % è®¡ç®—ç¨‹åºè¿è¡Œæ—¶é—´ï¼Œå¼€å§‹
+function main(Work_mode, SoC_est_init)
+    tic;  % ¼ÆËã³ÌĞòÔËĞĞÊ±¼ä£¬¿ªÊ¼
     if nargin == 0  % Set parameter by default
-        SoC_est_init = 1;
         Work_mode = 1;
+        SoC_est_init = 1;
     elseif nargin == 1
         SoC_est_init = 1;
     end
@@ -16,19 +16,19 @@ function main(SOC_est_init, Work_mode)
     elseif Work_mode == 2
         N = 60001;
         I=1.5*ones(1,N);
-        I(ceil(N/4):ceil(N/3)) = 0;
-        I(ceil(N*2/3):ceil(N*3/4)) = 0;
+        I(ceil(N/5):ceil(N*3/9)) = 0;
+        I(ceil(N*5/9):ceil(N*4/5)) = 0;
     else
-        disp("è¾“å…¥å‚æ•°é”™è¯¯ï¼");
-        disp("SOC_est_init : The initial value of estimated SOC");
+        disp("ÊäÈë²ÎÊı´íÎó£¡");
         disp("Work_mode: Mode of working condition");
-        disp("                       1 --> BBDST, 2 --> constant current ");
+        disp("           1 --> BBDST, 2 --> constant current ");
+        disp("SOC_est_init : The initial value of estimated SOC");
         return;
     end
-    [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF]=EKF_UKF_Thev(SOC_est_init, I);
+    [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF]=EKF_UKF_Thev(SoC_est_init, I);
     fprintf("mean_err_EKF --> %f\n", mean_err_EKF);
     fprintf("standard_err_EKF --> %f\n", standard_err_EKF);
     fprintf("mean_err_UKF --> %f\n", mean_err_UKF);
     fprintf("standard_err_UKF --> %f\n", standard_err_UKF);
-    toc;  % è®¡ç®—ç¨‹åºè¿è¡Œæ—¶é—´ï¼Œç»“æŸ
+    toc;  % ¼ÆËã³ÌĞòÔËĞĞÊ±¼ä£¬½áÊø
 end
