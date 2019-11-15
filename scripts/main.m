@@ -26,6 +26,7 @@ function main(Work_mode, SoC_est_init)
         return;
     end
     [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF]=EKF_UKF_Thev(SoC_est_init, I);
+    fprintf('Initial SOC value: %f\nWorking Mode: %d\n', SoC_est_init, Work_mode);
     fprintf("mean_err_EKF --> %f\n", mean_err_EKF);
     fprintf("standard_err_EKF --> %f\n", standard_err_EKF);
     fprintf("mean_err_UKF --> %f\n", mean_err_UKF);
