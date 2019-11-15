@@ -2,14 +2,14 @@
 
 ---
 
-This small project comes from the simulation part of my college graduation design which aimed to estimate the state of charge(SOC) of lithium battery. I mainly finished the experiments, parameters identification and simulation of extended kalman filter(EKF). The completion unscented kalman filter(UKF) simulation is thanks to the contribution from my friend, Pengcheng Gu. The BBDST working condition block is also benefit from the help so my senior, Cong Jiang.
+This small project comes from the simulation part of my college graduation design which aimed to estimate the state of charge(SOC) of lithium battery. I mainly finished the experiments, parameters identification and simulation of extended kalman filter(EKF). The completion unscented kalman filter(UKF) simulation is thanks to the contribution from my friend, Pengcheng Gu. The BBDST working condition block is also benefit from the help of my senior, Cong Jiang.
 
 ## General Content
 
-Li-Battery model building, parameters identification and verification, SOC estimation using extended kalman filter in Matlab, through two ways(in two different folders):
+Li-Battery model building, parameters identification and verification, SOC estimation using extended kalman filter(EKF) through two ways:
 
-1. Simulinks
-2. Scripts
+1. Simulinks(EKF only)
+2. Scripts(EKF&UKF)
 
 ## First Try
 
