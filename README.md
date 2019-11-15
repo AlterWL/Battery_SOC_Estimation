@@ -41,13 +41,13 @@ X_upd = X_pre + K*(UL_obs-UL_pre);
 ![Improvement](./imgs/ImprovedSim.jpg)
 <p align="center">Improved Structure</p>
 
-- A Matlab script named "main.m", which runs the Matlab function in "EKF_UKF_Thev.m", has been created for simulation. It simulates discharge process of lithium-ion battery under the BBDST(Beijing Bus Dynamic Street Test) working condition and constant current working condition with observation noise, and uses EKF/UKF method to estimate SOC of the battery.
+- A Matlab script named "main.m", which runs the Matlab function in "EKF_UKF_Thev.m", were created for simulation. It simulates discharge process of lithium-ion battery under the BBDST(Beijing Bus Dynamic Street Test) working condition and constant current working condition with observation noise, and uses EKF/UKF method to estimate SOC of the battery.
 
 ```matlab
-function main(SOC_est_init, Work_modes)
+function main(Work_modes, SOC_est_init)
 ```
 
-- The same name function in "main.m" requires two arguments, SOC_est_init: The initial value of estimated SOC, it's set to 1 by default, Work_mode: Mode of working condition 1-BBDST, 2-constant current. If you give just on argument, it will be given to Work_mode.  
+- The same name function in "main.m" requires two arguments, Work_mode: Mode of working condition 1-BBDST, 2-constant current, SOC_est_init: The initial value of estimated SOC, it's set to 1 by default. If you give just on argument, it will be given to Work_mode.  
 run the script in command window like `main()`or`main(1)`or`main(1,1)`, the result curves will appear as follows.
 
 ![States estimation curve](./imgs/SimResult.jpg)
