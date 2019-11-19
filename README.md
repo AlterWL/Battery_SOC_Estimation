@@ -2,7 +2,7 @@
 
 ---
 
-This small project comes from the simulation part of my college graduation design which aimed to estimate the state of charge(SOC) of lithium battery. I mainly finished the experiments, parameters identification and simulation of extended kalman filter(EKF). The completion unscented kalman filter(UKF) simulation is thanks to the contribution from my friend, Pengcheng Gu. The BBDST working condition block is also benefit from the help of my senior, Cong Jiang.
+This small project comes from the simulation part of my college graduation design which aimed to estimate the state of charge(SOC) of lithium battery. I mainly finished the experiments, parameters identification and simulation of extended kalman filter(EKF). The completion unscented kalman filter(UKF) simulation needs to thank the contribution from my friend, Pengcheng Gu. And the BBDST working condition block is also benefit from the help of my senior, Cong Jiang. thanks angain to my warm friends.
 
 ## General Content
 
