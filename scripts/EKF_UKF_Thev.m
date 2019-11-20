@@ -26,9 +26,8 @@ function [mean_err_EKF,standard_err_EKF,mean_err_UKF,standard_err_UKF] = EKF_UKF
     R = 1e-6;  %观测噪声方差
     I_real = Currents;
     
-    %--------------无迹变换--------------------
-    global n;                %维度
-    n=1;
+    %--------------无迹变换--------------------            
+    n=1;  %维度
     alp=0.04;
     beta=2;
     kap=2;                                                    
