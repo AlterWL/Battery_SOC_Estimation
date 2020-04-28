@@ -1,6 +1,6 @@
 # Battery State of Charge Estimation Using Kalman Filter
 
----
+[简体中文](./README_zh_CN.md)
 
 This small project comes from the simulation part of my college graduation design which aimed to estimate the state of charge(SOC) of lithium battery. I mainly finished the experiments, parameters identification and simulation of extended kalman filter(EKF). The completion unscented kalman filter(UKF) simulation needs to thank the contribution from my friend, Pengcheng Gu. And the BBDST working condition block is also benefit from the help of my senior, Cong Jiang. thanks angain to my warm friends.
 
@@ -41,14 +41,14 @@ X_upd = X_pre + K*(UL_obs-UL_pre);
 ![Improvement](./imgs/ImprovedSim.jpg)
 <p align="center">Improved Structure</p>
 
-- A Matlab script named "main.m", which runs the Matlab function in "EKF_UKF_Thev.m", were created for simulation. It simulates discharge process of lithium-ion battery under the BBDST(Beijing Bus Dynamic Street Test) working condition and constant current working condition with observation noise, and uses EKF/UKF method to estimate SOC of the battery.
+- MATLAB scripts simulate discharge process of lithium-ion battery under the BBDST(Beijing Bus Dynamic Street Test) working condition and constant current working condition with observation noise, and uses EKF/UKF method to estimate SOC of the battery.
 
 ```matlab
 function main(Work_modes, SOC_est_init)
 ```
 
-- The same name function in "main.m" requires two arguments, Work_mode: Mode of working condition 1-BBDST, 2-constant current, SOC_est_init: The initial value of estimated SOC, it's set to 1 by default. If you give just on argument, it will be given to Work_mode.  
-run the script in command window like `main()`or`main(1)`or`main(1,1)`, the result curves will appear as follows.
+- The main function requires two arguments, Work_mode: Mode of working condition 1-BBDST, 2-constant current, SOC_est_init: The initial value of estimated SOC, it's set to 1 by default. If you give just on argument, it will be given to Work_mode.  
+type in command window like `main()`or`main(1)`or`main(1,1)`, the result curves will appear as follows.
 
 ![States estimation curve](./imgs/SimResult.jpg)
-<p align="center">Script Result</p>
+<p align="center">Result Curves</p>
