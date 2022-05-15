@@ -1,7 +1,7 @@
 %% ==================================================================
 %  Description: SoC estimation using EKF/UKF based on the Thevenin model
 %  Input: SoC_upd_init, the initial updated value of SoC
-%         Current, the working condition current generated from BBDST¹¤¿ö.slx
+%         Current, the working condition current generated from BBDSTå·¥å†µ.slx
 %% ==================================================================
 
 function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC_upd_init, current)
@@ -59,7 +59,7 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
             B2 = Rp * (1 - exp(-tr / tao));
             B = [B1; B2];  % Input control matrix
             
-            States_real(:, t) = A * States_real(:, t-1) + B * I_real(1, t) + [sqrt(Qs) * randn; sqrt(Qu) * randn];  % Êµ¼Ê¹ı³ÌÄ£ÄâÒÔ 0.5s ¸üĞÂÒ»´Î
+            States_real(:, t) = A * States_real(:, t-1) + B * I_real(1, t) + [sqrt(Qs) * randn; sqrt(Qu) * randn];  % å®é™…è¿‡ç¨‹æ¨¡æ‹Ÿä»¥ 0.5s æ›´æ–°ä¸€æ¬¡
             SoC_real(1, t) = States_real(1, t);
         end
         UOC_real = 3.44003 + 1.71448 * States_real(1, t) - 3.51247 * States_real(1, t)^2  + 5.70868 * States_real(1, t)^3 - 5.06869 * States_real(1, t)^4 + 1.86699 * States_real(1, t)^5;
@@ -67,7 +67,7 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
         % Observed voltage
         UL_ob = UOC_real - States_real(2, t) - I_real(:, t) * Rint_real + sqrt(R) * randn;
         % Observed Current
-        % °²Ê±»ı·Ö´æÔÚÎó²îÀÛ¼Æ£¬Îó²î¹ı´ó¿¨¶ûÂüĞ§¹ûÉõÖÁµÍÓÚ°²Ê±»ı·Ö
+        % å®‰æ—¶ç§¯åˆ†å­˜åœ¨è¯¯å·®ç´¯è®¡ï¼Œè¯¯å·®è¿‡å¤§å¡å°”æ›¼æ•ˆæœç”šè‡³ä½äºå®‰æ—¶ç§¯åˆ†
         % I_ob = I_real(t) + abs((0.05 * Capacity) * randn);
         I_ob = I_real(t) + (0.01 * Capacity) * randn;
 

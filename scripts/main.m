@@ -18,7 +18,7 @@ function main(Work_mode, SoC_est_init)
         I(ceil(N / 5) : ceil(N * 3 / 9)) = 0;
         I(ceil(N * 5 / 9) : ceil(N * 4 / 5)) = 0;
     else
-        disp("ÊäÈë²ÎÊý´íÎó£¡");
+        disp("Input error!");
         disp("Work_mode: Mode of working condition");
         disp("           1 --> BBDST, 2 --> constant current ");
         disp("SOC_est_init : The initial value of estimated SOC");
