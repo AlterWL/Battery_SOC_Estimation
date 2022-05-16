@@ -27,9 +27,9 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
     % N = 3600/ts;  % total sampling times
     N = 5000;
     Capacity = 1.5;  % battery capacity
-    Qs = 4e-9;  % varance of the SoC process noise, also for UKF
-    Qu = 1e-8;  % varance of the Up process noise
-    R = 1e-6;  % varance of observation noise, also for UKF
+    Qs = 4e-9;  % variance of the SoC process noise, also for UKF
+    Qu = 1e-8;  % variance of the Up process noise
+    R = 1e-6;  % variance of observation noise, also for UKF
     I_real = current;
     
     % UKF paramters
@@ -64,12 +64,9 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
         end
         UOC_real = 3.44003 + 1.71448 * States_real(1, t) - 3.51247 * States_real(1, t)^2  + 5.70868 * States_real(1, t)^3 - 5.06869 * States_real(1, t)^4 + 1.86699 * States_real(1, t)^5;
         Rint_real = 0.04916 + 1.19552 * States_real(1, t) - 6.25333 * States_real(1, t)^2 + 14.24181 * States_real(1, t)^3 - 13.93388 * States_real(1, t)^4 + 2.553 * States_real(1, t)^5 + 4.16285 * States_real(1, t)^6 - 1.8713 * States_real(1, t)^7;
-        % Observed voltage
+        % Observed voltage/current with observation error
         UL_ob = UOC_real - States_real(2, t) - I_real(:, t) * Rint_real + sqrt(R) * randn;
-        % Observed Current
-        % 安时积分存在误差累计，误差过大卡尔曼效果甚至低于安时积分
-        % I_ob = I_real(t) + abs((0.05 * Capacity) * randn);
-        I_ob = I_real(t) + (0.01 * Capacity) * randn;
+        I_ob = I_real(t) + (0.01 * Capacity) * randn;  % 观测误差过大时 KF 效果甚至低于 AH
 
         %% AH process -----------------------------------------------
         SoC_AH(1, T) = SoC_AH(1, T-1) - ts / (Capacity * 3600) * I_ob;
@@ -86,11 +83,12 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
         Up_pre = States_pre(2, 1);  % predicted value of the polarization voltage
         P_Cov = A * P_Cov * A' + [Qs 0; 0 Qu];
         UOC_pre = 3.44003 + 1.71448 * SoC_pre - 3.51247 * SoC_pre^2 + 5.70868 * SoC_pre^3 - 5.06869 * SoC_pre^4 + 1.86699 * SoC_pre^5;
-        Rint_pre = 0.04916 + 1.19552 * SoC_pre - 6.25333 * SoC_pre^2 + 14.24181* SoC_pre^3 - 13.93388 * SoC_pre^4 + 2.553 * SoC_pre^5 + 4.16285 * SoC_pre^6 - 1.8713 * SoC_pre^7;
-        UL_pre = UOC_pre - Up_pre - I_ob * Rint_pre;
-        % update
+        Ro_pre = 0.04916 + 1.19552 * SoC_pre - 6.25333 * SoC_pre^2 + 14.24181* SoC_pre^3 - 13.93388 * SoC_pre^4 + 2.553 * SoC_pre^5 + 4.16285 * SoC_pre^6 - 1.8713 * SoC_pre^7;
+        UL_pre = UOC_pre - Up_pre - I_ob * Ro_pre;
+        % linearization
         C1 = 1.71448 - 2 * 3.51247 * SoC_EKF(1,T-1) + 3 * 5.70868 * SoC_EKF(1, T-1)^2 - 4 * 5.06869 * SoC_EKF(1, T-1)^3 + 5 * 1.86699 * SoC_EKF(1, T-1)^4;
         C = [C1 -1];
+        % update
         K = P_Cov * C' * (C * P_Cov * C' + R)^(-1);  % gain
         States_upd(:, T) = States_pre + K * (UL_ob - UL_pre);
         P_Cov = P_Cov - K * C * P_Cov;
@@ -128,11 +126,11 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
         gamma = zeros(1, 2 * n + 1)
         for i = 1 : 2*n+1
             UOC_pre = 3.44003 + 1.71448 * Resigma(i) - 3.51247 * Resigma(i)^2 + 5.70868 * Resigma(i)^3 - 5.06869 * Resigma(i)^4 + 1.86699 * Resigma(i)^5;
-            Rint_pre = 0.04916 + 1.19552 * Resigma(i) - 6.25333 * Resigma(i)^2 + 14.24181 * Resigma(i)^3 - 13.93388 * Resigma(i)^4 + 2.553 * Resigma(i)^5 + 4.16285 * Resigma(i)^6 - 1.8713 * Resigma(i)^7;
+            Ro_pre = 0.04916 + 1.19552 * Resigma(i) - 6.25333 * Resigma(i)^2 + 14.24181 * Resigma(i)^3 - 13.93388 * Resigma(i)^4 + 2.553 * Resigma(i)^5 + 4.16285 * Resigma(i)^6 - 1.8713 * Resigma(i)^7;
             Rp = 0.02346 - 0.10537 * Resigma(i)^1 + 1.1371 * Resigma(i)^2 - 4.55188 * Resigma(i)^3 + 8.26827 * Resigma(i)^4 - 6.93032*Resigma(i)^5 + 2.1787 * Resigma(i)^6;
             Cp = 203.1404 + 3522.78847 * Resigma(i) - 31392.66753 * Resigma(i)^2 + 122406.91269 * Resigma(i)^3 - 227590.94382 * Resigma(i)^4 + 198281.56406 * Resigma(i)^5 - 65171.90395 * Resigma(i)^6;
             tao = Rp * Cp
-            gamma(i) = UOC_pre - I_ob * Rint_pre - I_ob * Rp * (1 - exp(-ts/tao));
+            gamma(i) = UOC_pre - I_ob * Ro_pre - I_ob * Rp * (1 - exp(-ts/tao));
         end
         syk = 0;  % Mean value of observed UL
         for i = 1 : 2*n+1
