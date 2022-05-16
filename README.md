@@ -138,4 +138,4 @@ X(k) = X(k) + K(k) * (UL_ob - UL(k))        ······(14)
 P(k) = P(k) - K(k) * C(k) * P(k)            ······(15)
 ```
 
-An Intuitive Derivation of the Kalman filter process is [Here](https://courses.engr.illinois.edu/ece420/sp2017/UnderstandingKalmanFilter.pdf).
+An Intuitive Derivation of the Kalman filter process is [Here](https://courses.engr.illinois.edu/ece420/sp2017/UnderstandingKalmanFilter.pdf). An detailed explanation of UKF is [Here](https://www.cs.ubc.ca/~murphyk/Papers/Julier_Uhlmann_mar04.pdf).
