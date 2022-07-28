@@ -8,6 +8,9 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
     %% Initialization -----------------------------------------------
     ts  = 1;  % smaple interval
     tr = 0.1;  % smallest time interval uesd to simulate the real SOC
+    % N = 3600/ts;  % total sampling times
+    N = 5000;
+    Capacity = 1.5;
     SoC_real(1, 1) = 1;  % Initial real SoC value
     States_real = [SoC_real(1, 1); 0];  % (SoC_real, Up_real)
     States_upd = [SoC_upd_init; 0];  % (SOC_upd, Up_upd)
@@ -24,9 +27,6 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
 
     % EKF parameters
     P_Cov = [1e-8 0; 0 1e-6];  % covariance matrix
-    % N = 3600/ts;  % total sampling times
-    N = 5000;
-    Capacity = 1.5;  % battery capacity
     Qs = 4e-9;  % variance of the SoC process noise, also for UKF
     Qu = 1e-8;  % variance of the Up process noise
     R = 1e-6;  % variance of observation noise, also for UKF
@@ -37,10 +37,10 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
     alpha = 0.04;
     beta = 2;
     % kap = 2;                                                    
-    % lamda = alpha ^ 2 * (n + kap) - n;          
-    lamda = 1.5;    
+    % lambda = alpha ^ 2 * (n + kap) - n;          
+    lambda = 1.5;    
     % weight
-    Wm = [lamda / (n + lamda), 0.5 / (n + lamda) + zeros(1, 2 * n)];
+    Wm = [lambda / (n + lambda), 0.5 / (n + lambda) + zeros(1, 2 * n)];
     Wc = Wm;
     Wc(1) = Wc(1) + (1 - alpha^2 + beta);
     P = 1e-6; % initial variance value of state error
@@ -59,14 +59,15 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
             B2 = Rp * (1 - exp(-tr / tao));
             B = [B1; B2];  % Input control matrix
             
-            States_real(:, t) = A * States_real(:, t-1) + B * I_real(1, t) + [sqrt(Qs) * randn; sqrt(Qu) * randn];  % 实际过程模拟以 0.5s 更新一次
+            States_real(:, t) = A * States_real(:, t-1) + B * I_real(1, t) + [sqrt(Qs) * randn; sqrt(Qu) * randn];
             SoC_real(1, t) = States_real(1, t);
         end
         UOC_real = 3.44003 + 1.71448 * States_real(1, t) - 3.51247 * States_real(1, t)^2  + 5.70868 * States_real(1, t)^3 - 5.06869 * States_real(1, t)^4 + 1.86699 * States_real(1, t)^5;
         Rint_real = 0.04916 + 1.19552 * States_real(1, t) - 6.25333 * States_real(1, t)^2 + 14.24181 * States_real(1, t)^3 - 13.93388 * States_real(1, t)^4 + 2.553 * States_real(1, t)^5 + 4.16285 * States_real(1, t)^6 - 1.8713 * States_real(1, t)^7;
         % Observed voltage/current with observation error
-        UL_ob = UOC_real - States_real(2, t) - I_real(:, t) * Rint_real + sqrt(R) * randn;
-        I_ob = I_real(t) + (0.01 * Capacity) * randn;  % 观测误差过大时 KF 效果甚至低于 AH
+        UL_ob_EKF = UOC_real - States_real(2, t) - I_real(1, t) * Rint_real + sqrt(R) * randn;
+        UL_ob_UKF = UOC_real - B2 * I_real(1,t) - I_real(1,t) * Rint_real + sqrt(R)*randn;
+        I_ob = I_real(t) + (0.01 * Capacity) * randn;  % 观测误差过大�? KF 效果甚至低于 AH
 
         %% AH process -----------------------------------------------
         SoC_AH(1, T) = SoC_AH(1, T-1) - ts / (Capacity * 3600) * I_ob;
@@ -75,7 +76,7 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
         % predict
         Rp = 0.02346 - 0.10537 * SoC_EKF(1, T-1)^1 + 1.1371 * SoC_EKF(1,T-1)^2 - 4.55188 * SoC_EKF(1,T-1)^3 + 8.26827 * SoC_EKF(1, T-1)^4 - 6.93032 * SoC_EKF(1,T-1)^5 + 2.1787 * SoC_EKF(1, T-1)^6;
         Cp = 203.1404 + 3522.78847 * SoC_EKF(1, T-1) - 31392.66753 * SoC_EKF(1, T-1)^2 + 122406.91269 * SoC_EKF(1, T-1)^3 - 227590.94382 * SoC_EKF(1, T-1)^4 + 198281.56406 * SoC_EKF(1, T-1)^5 - 65171.90395 * SoC_EKF(1, T-1)^6;
-        tao = Rp * Cp
+        tao = Rp * Cp;
         A = [1 0; 0 exp(-ts / tao)];  % State transformation matrix
         B = [-ts / (Capacity * 3600); Rp * (1 - exp(-ts / tao))];  % Input control matrix
         States_pre = A * States_upd(:, T - 1) + B * I_ob;  % states prediction
@@ -90,14 +91,16 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
         C = [C1 -1];
         % update
         K = P_Cov * C' * (C * P_Cov * C' + R)^(-1);  % gain
-        States_upd(:, T) = States_pre + K * (UL_ob - UL_pre);
+        States_upd(:, T) = States_pre + K * (UL_ob_EKF - UL_pre);
         P_Cov = P_Cov - K * C * P_Cov;
         SoC_EKF(1, T) = States_upd(1, T);
         
         %% UKF process ----------------------------------------------
         Xsigma = SoC_UKF(T - 1);
-        pk = sqrt((n + lamda) * P);
+        pk = sqrt((n + lambda) * P);
         % sigma sampling points determination
+        sigma1 = zeros(1, n);
+        sigma2 = zeros(1, n);
         for i = 1 : n
            sigma1(i) = Xsigma + pk;
            sigma2(i) = Xsigma - pk;
@@ -115,21 +118,21 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
             spk = Wc(kp) * (sigma(kp) - sxk) * (sigma(kp) - sxk)' + spk;
         end
         spk = spk + Qs;
-        % update sigma sampling points into Resigma
-        pkr = sqrt((n + lamda) * spk);
+        % update sigma sampling points
+        pkr = sqrt((n + lambda) * spk);
         for k = 1 : n
-           Resigma1(k) = sxk + pkr;
-           Resigma2(k) = sxk - pkr;
+           sigma1(k) = sxk + pkr;
+           sigma2(k) = sxk - pkr;
         end
-        Resigma = [sxk Resigma1 Resigma2];
+        Resigma = [sxk sigma1 sigma2];
         % predict UL
-        gamma = zeros(1, 2 * n + 1)
+        gamma = zeros(1, 2 * n + 1);
         for i = 1 : 2*n+1
             UOC_pre = 3.44003 + 1.71448 * Resigma(i) - 3.51247 * Resigma(i)^2 + 5.70868 * Resigma(i)^3 - 5.06869 * Resigma(i)^4 + 1.86699 * Resigma(i)^5;
             Ro_pre = 0.04916 + 1.19552 * Resigma(i) - 6.25333 * Resigma(i)^2 + 14.24181 * Resigma(i)^3 - 13.93388 * Resigma(i)^4 + 2.553 * Resigma(i)^5 + 4.16285 * Resigma(i)^6 - 1.8713 * Resigma(i)^7;
             Rp = 0.02346 - 0.10537 * Resigma(i)^1 + 1.1371 * Resigma(i)^2 - 4.55188 * Resigma(i)^3 + 8.26827 * Resigma(i)^4 - 6.93032*Resigma(i)^5 + 2.1787 * Resigma(i)^6;
             Cp = 203.1404 + 3522.78847 * Resigma(i) - 31392.66753 * Resigma(i)^2 + 122406.91269 * Resigma(i)^3 - 227590.94382 * Resigma(i)^4 + 198281.56406 * Resigma(i)^5 - 65171.90395 * Resigma(i)^6;
-            tao = Rp * Cp
+            tao = Rp * Cp;
             gamma(i) = UOC_pre - I_ob * Ro_pre - I_ob * Rp * (1 - exp(-ts/tao));
         end
         syk = 0;  % Mean value of observed UL
@@ -148,7 +151,7 @@ function [avr_err_EKF, std_err_EKF, avr_err_UKF, std_err_UKF] = EKF_UKF_Thev(SoC
         end
         % update
         kgs = pxy / pyy;  % correction factor, namely kalman gain
-        SoC_UKF(T) = sxk + kgs * (UL_ob - syk);  % update the state SoC
+        SoC_UKF(T) = sxk + kgs * (UL_ob_UKF - syk);  % update the state SoC
         P = spk - kgs * pyy * kgs';  % update the variance P
         
         %% Error ----------------------------------------------------
