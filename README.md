@@ -13,45 +13,61 @@ Li-Battery model building, parameters identification and verification, SoC estim
 
 ## First Try
 
-- The inputs of the model include current and voltage comes from battery data in HPPC(Hybrid PulsePower Characteristic) test.
-- Thevenin equivalent circuit model and extended kalman filter are included in the simulation file "EKFSim_R2016.slx", of which the structure is shown in the snapshot below.
+The inputs of the model include current and voltage comes from battery data in HPPC(Hybrid PulsePower Characteristic) test.
 
-![Simulink](./imgs/simulink.png)
-<p align="center">Structure of EKFSim_R2016.slx</p>
+Thevenin equivalent circuit model and extended kalman filter are included in the simulation file "EKFSim_R2016.slx", of which the structure is shown in the snapshot below.
 
-- The estimated curve has distinct divergences in the current pulse areas and it converges to the true value in the constant current discharge areas.
-- The estimated SoC and update Up(voltage of RC element in Thevenin ECM) change synchronously due to the same state vector that they are in, that can be seen in the function block 'EKF'.
+![Simulink](./imgs/simulink.jpg)
 
-![States Output](./imgs/Output.png)
-<p align="center">Output of EKFSim_R2016.slx</p>
+The estimated curve has distinct divergences in the current pulse areas and it converges to the true value in the constant current discharge areas.
 
-- Kalman filter update of states including SoC and Up, according to the difference between observed values and predicted values of UL(voltage on the load). The code format of this expression is as following.  
+The estimated SoC and update Up(voltage of RC element in Thevenin ECM) change synchronously due to the same state vector that they are in, that can be seen in the function block 'EKF'.
+
+Kalman filter update of states including SoC and Up, according to the difference between observed values and predicted values of UL(voltage on the load). The code format of this expression is as following.  
 
 ```matlab
 X_upd = X_pre + K*(UL_obs-UL_pre);
 ```
 
-![UL curves](./imgs/UL.png)
-<p align="center">UL Variation</p>
+The output results of the simulation are shown in the figures belows.
+
+![States Output](./imgs/SimOutput.jpg)
+
+![UL curves](./imgs/UL.jpg)
 
 ## Improvement
 
-- After improvement, the I/O relationship between modules becomes more perspicuous, the corresponding Simulink file is named Improved_EKFSim.slx.
+After improvement, the I/O relationship between modules becomes more perspicuous, the corresponding Simulink file is named Improved_EKFSim.slx.
 
 ![Improvement](./imgs/ImprovedSim.jpg)
-<p align="center">Improved Structure</p>
 
-- MATLAB scripts simulate discharge process of lithium-ion battery under the BBDST(Beijing Bus Dynamic Street Test) working condition and constant current working condition with observation noise, and uses EKF/UKF method to estimate SoC of the battery.
+The BBDST(Beijing Bus Dynamic Street Test) working condition is used here as the input current.
+
+![BBDST](./imgs/BBDST.jpg)
+
+The output results are shown in the figures belows.
+
+![Simulink_EKF_AH](./imgs/Simulink_EKF_AH.jpg)
+
+![Err](./imgs/Error_EKF_AH.jpg)
+
+## Scripts
+
+MATLAB scripts simulate discharge process of lithium-ion battery under the BBDST working condition and constant current working condition with observation noise, and uses EKF/UKF method to estimate SoC of the battery.
 
 ```matlab
 function main(Work_modes, SoC_est_init)
 ```
 
-- The main function requires two arguments, Work_mode: Mode of working condition 1-BBDST, 2-constant current, SoC_est_init: The initial value of estimated SoC, it's set to 1 by default. If you give just on argument, it will be given to Work_mode.  
-type in command window like `main()`or`main(1)`or`main(1,1)`, the result curves will appear as follows.
+The main function requires two arguments:
+
+- Work_mode: Choice of working condition with 1 representing BBDST working condition and 2 representing constant current.
+
+- SoC_est_init: The initial value of estimated SoC, it's set to 1 by default, if just one argument is passed.
+
+Type in command window like `main()`or`main(1)`or`main(1,1)`, the result curves will appear as follows.
 
 ![States estimation curve](./imgs/SimResult.jpg)
-<p align="center">Result Curves</p>
 
 ## Related Knowledge
 
@@ -60,7 +76,6 @@ type in command window like `main()`or`main(1)`or`main(1,1)`, the result curves 
 Thevenin equivalent circuit model(ECM) is a first-order RC circuit. The discharge direction is taken as the positive direction of current, as shown in the figure below.
 
 ![ECM](./imgs/Thevenin_equivalent_circuit.jpg)
-<p align="center">Thevenin equivalent circuit</p>
 
 The voltage on the polarization capacitor is denoted as Up. Then according to KVL and KCL we get the following equations.
 
